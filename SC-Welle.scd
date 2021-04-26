@@ -206,12 +206,12 @@ i.interactionGUI = {|f, message|
 	// message.postln;
 	switch (message[0],
 		'setVolume', {
-			if (i.volume != message[1], {
-				i.sendMIDI(['sendVolume', i.volume]);
-				i.volume = message[1];
+			// message[1] = val 0-126
+			var inVal = message[1]/126;
+			if (i.volume != inVal, {
+				i.volume = inVal;
+				i.sendMIDI(['sendVolume', i.volume*126]);
 			})
-			// postf("set volume: %\n", i.volume);
-
 		},
 		'setPattern', {
 			var c = message[1];
