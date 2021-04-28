@@ -19,8 +19,8 @@ Controller (max 120):
 10-14   = EQ 5 values
 16-20   = Env 4 values
 
-send chan:    1
-receive chan: 2
+send chan:    1 (0 from 0)
+receive chan: 2 (1 from 0)
 */
 
 ////////////////////////////////////////////////////////////
@@ -76,9 +76,10 @@ i.startMIDI = {
 };
 
 ////////////////////////////////////////////////////////////
-// MIDI INPUT function
+// MIDI INPUT function, chan 0-15
 ~control = { |src, chan, num, val|
-	if (chan==2, {
+	//['MIDIIn', chan, num, val].postln;
+	if (chan==1, {
 		/*['> MIDIIn > control', chan,num,val].postln;*/
 		if (num==9, {
 			['MIDIIn volume', num, val].postln;
@@ -103,7 +104,7 @@ i.startMIDI = {
 		if ((num>=16) && (num<=19), {
 			var index = num-16;
 			['MIDIIn env', num, val].postln;
-			i.envMidi[index] = val/100;
+			i.envMidi[index] = val/126;
 			['MIDIIn i.envMidi', i.envMidi].postln;
 			i.envelope = i.convertEnv(i.envMidi);
 			defer { i.updateWindow() };
@@ -118,12 +119,12 @@ i.sendMIDI = {|f, message|
 	if (i.midiOut != nil, {
 		switch(message[0],
 			'sendVolume', {
-				i.midiOut.control(1, 9, message[1])
+				i.midiOut.control(0, 9, message[1])
 			},
 			'sendPattern', {
-				var chan = 1 + message[1];
+				var controller = 1 + message[1];
 				var val =  i.pattern[ message[1] ];
-				i.midiOut.control(1, chan, val);
+				i.midiOut.control(0, controller, val);
 			},
 			'sendEq', {
 				var newEqMidi = message[1];
@@ -131,7 +132,7 @@ i.sendMIDI = {|f, message|
 				for (0, 4, {|c|
 					var cc = c+10;  // midi control Eq = cc 10-14
 					if (eqMidi[c] != newEqMidi[c], {  // check if eq changed, and only send changed values
-						i.midiOut.control(1, cc, newEqMidi[c]*100);
+						i.midiOut.control(0, cc, newEqMidi[c]*126);
 					});
 
 				});
@@ -143,7 +144,7 @@ i.sendMIDI = {|f, message|
 				for (0, 3, {|c|
 					var cc = c+16;  // midi control Env = cc 16-20
 					if (envMidi[c] != newEnvMidi[c], {  // check if eq changed, and only send changed values
-						i.midiOut.control(1, cc, newEnvMidi[c]*100);
+						i.midiOut.control(0, cc, newEnvMidi[c]*126);
 					});
 
 				});
